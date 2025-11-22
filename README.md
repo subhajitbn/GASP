@@ -1,4 +1,4 @@
-# GASP: Geometric Analysis and Sampling Package
+# GASP: Geometric Allocation of Sample Points
 
 High-performance proportional sampling from point cloud clusters with geometric size measures and sampling measures.
 ## Installation
