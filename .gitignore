@@ -1,0 +1,58 @@
+
+# -----------------------
+# Rust / Cargo
+# -----------------------
+/target/
+/Cargo.lock
+**/*.rs.bk
+
+# If you want to commit Cargo.lock for libraries, remove the above line.
+# For binary crates, keeping Cargo.lock is typical.
+
+# -----------------------
+# Maturin / Python build artifacts
+# -----------------------
+/src/gasp/__pycache__
+/dist/
+/build/
+/*.whl
+/*.egg-info
+**/*.egg-info
+*.so
+
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+/.python-version
+/.venv
+venv/
+env/
+*.pyc
+*.pyo
+*.pyd
+
+# Packaging
+/.maturin
+/.ruff_cache
+/.pytest_cache
+/.coverage
+coverage.xml
+
+# -----------------------
+# IDE / Editor files
+# -----------------------
+# VSCode
+.vscode/
+# PyCharm
+.idea/
+# Others
+*.swp
+*.swo
+.DS_Store
+
+# -----------------------
+# UV (if using uv.lock)
+# -----------------------
+uv.lock
+.uv/
