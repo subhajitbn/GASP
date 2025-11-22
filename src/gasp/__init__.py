@@ -205,6 +205,15 @@ def sample_uniform(points, count, seed):
     return _sample_uniform_list(points, count, seed)
 
 
+# ============ Cluster sampling module ============ 
+
+from gasp.clustersampler import (
+    sample_from_clusters,
+    grid_search_sample_from_clusters,
+    SIZE_MEASURES as CLUSTER_SIZE_MEASURES,
+    SAMPLING_METHODS as CLUSTER_SAMPLING_METHODS,
+)
+
 __all__ = [
     # Size measures
     "bbox_volume",
@@ -218,6 +227,11 @@ __all__ = [
     "sample_centroid_voxel",
     "sample_centroid_stratified",
     "sample_uniform",
+    # Cluster sampling
+    "sample_from_clusters",
+    "grid_search_sample_from_clusters",
+    "CLUSTER_SIZE_MEASURES",
+    "CLUSTER_SAMPLING_METHODS",
 ]
 
 
