@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - main
-      - dev
+      - develop
+    tags:
+      - v*
   pull_request:
     branches:
       - main
-      - dev
-  # Trigger publishing on version tags
-  push:
-    tags:
-      - v*
+      - develop
 
 jobs:
   # Continuous Integration Job
@@ -22,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.14"]
     
     steps:
       - name: Checkout code
@@ -40,7 +38,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
       
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -50,30 +50,33 @@ jobs:
           python-version: ${{ matrix.python-version }}
       
       - name: Install the project (builds Rust extension)
-        run: uv sync --locked --all-extras --dev
+        run: uv sync --all-extras --dev
       
       - name: Run Rust tests
         run: cargo test --release
       
-      # We will add Python test commands here. Rust tests run automatically.
+      # Add your Python test commands here
       - name: Run Python tests
         run: |
           # If you have pytest
           # uv run pytest tests
+          
+          # If you have other tests, add them here
+          echo "Add your Python test commands here"
       
       - name: Test CLI command
         run: uv run gasp --help || echo "Add --help flag or test actual functionality"
       
       # Only build wheels on one matrix combination to save time
       - name: Build package
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv build
       
       - name: Upload build artifacts
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: test-dist
           path: dist/
 
   # Continuous Deployment Job (builds wheels for all platforms)
@@ -85,7 +88,15 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
     
     steps:
       - name: Checkout code
@@ -93,6 +104,8 @@ jobs:
       
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
       
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -100,19 +113,24 @@ jobs:
           version: "0.9.11"
       
       - name: Set up Python
-        run: uv python install
+        run: uv python install 3.14
       
+      # Use maturin for proper wheel building
       - name: Build wheels
-        run: uv build --wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          manylinux: auto
       
       - name: Build source distribution (Linux only)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
         run: uv build --sdist
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: wheels-${{ matrix.target }}
           path: dist/
 
   # Upload to PyPI
@@ -133,6 +151,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: wheels-*
           path: dist
           merge-multiple: true
       
@@ -140,6 +159,9 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           version: "0.9.11"
+      
+      - name: List files to be published
+        run: ls -la dist/
       
       - name: Publish to PyPI
         run: uv publish

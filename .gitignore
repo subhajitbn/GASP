@@ -8,7 +8,6 @@ data
 # Rust / Cargo
 # -----------------------
 /target/
-/Cargo.lock
 **/*.rs.bk
 
 # If you want to commit Cargo.lock for libraries, remove the above line.
