@@ -1,6 +1,6 @@
 [project]
 name = "gasp-python"
-version = "0.0.5"
+version = "0.0.6"
 description = "High-performance proportional sampling from point cloud clusters with geometric size measures and sampling measures."
 readme = "README.md"
 authors = [
